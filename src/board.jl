@@ -1,6 +1,18 @@
+"""
+    Board
+
+Basic structure of a Hex game.
+
+# Fields
+- `size::Int`: size of the field
+- `moves::Union{Array{Array{Int,1},1}, Missing}`: played moves, for example
+  could be [[1,2], [2,3], [4,7]], which means that the first move was played at
+  [1,2], the second at [2,3] and the third at [4,7]
+- `switched::Bool`: Has the switching rule been used (in which case the odd
+  moves count for Player 2) 
+"""
 struct Board
     size::Int
-    # something like moves = [[1,2], [2,3], [4,7]]
     moves::Union{Array{Array{Int,1},1}, Missing}
     switched::Bool
 end
@@ -8,7 +20,7 @@ end
 
 function theoretical_neighbours(p)
     i, j = p[1], p[2]
-    [[i-1, j], [i-1,j+1], [i,j-1], [i,j+1], [i+1,j], [i+1, j-1]]
+    return [[i-1, j], [i-1,j+1], [i,j-1], [i,j+1], [i+1,j], [i+1, j-1]]
 end
 
 function has_path(fields, start, targets)
@@ -22,6 +34,9 @@ function has_path(fields, start, targets)
     end
 
     for n in actual_neighbours
+        # The actual recursion: look for a path from any of the actual
+        # neighbours to the target fields in a modified board without the
+        # current starting field. This implies termination of the algorithm.
         if has_path(filter(p -> p != start, fields), n, targets)
             return true
         end
@@ -29,10 +44,16 @@ function has_path(fields, start, targets)
     return false
 end
 
+"""
+    payoff(board::Board)
 
+Is 1 if Player 1 has a winning path, -1 if Player 2 has a winning path and 0
+else. Convention: Odd moves wish to connect top to bottom, even moves wish to
+connect left to right. Switching rules might be in effect.
+"""
 function payoff(board::Board)
-    moves_even = [board.moves[i] for i in 1:length(board.moves) if iseven(i)]
     moves_odd = [board.moves[i] for i in 1:length(board.moves) if isodd(i)]
+    moves_even = [board.moves[i] for i in 1:length(board.moves) if iseven(i)]
 
     if findfirst(i -> has_path(moves_odd, [1,i], [[board.size, j] for j in 1:board.size]), 1:board.size) !== nothing
         if board.switched
