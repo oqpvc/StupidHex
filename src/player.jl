@@ -10,9 +10,9 @@ function best_move(board::Board, Q)
     all_positions = [(i,j) for i in 1:board.size for j in 1:board.size] 
 
     legal_positions = filter(!in(board.moves), all_positions)
-    best = partialsort(legal_positions, 1, lt = ((a , b) -> Q(board, a)  > Q(board, b)))
-
-    return best
+    utilities = map(p -> Q(board, p), legal_positions)
+    _, i = findmax(utilities)
+    return legal_positions[i]
 end
 
 

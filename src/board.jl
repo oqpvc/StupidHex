@@ -57,6 +57,7 @@ function has_path(fields, starts, targets)
             fields = filter(!in(nodes), fields)
         end
     end
+    return false
 end
 
 """
