@@ -11,8 +11,8 @@ function best_move(board::Board, Q)
 
     legal_positions = filter(!in(board.moves), all_positions)
     utilities = map(p -> Q(board, p), legal_positions)
-    _, i = findmax(utilities)
-    return legal_positions[i]
+    u, i = findmax(utilities)
+    return legal_positions[i], u
 end
 
 
@@ -21,12 +21,13 @@ function next_board(board::Board, Q)
         error("Game is already finished, no further moves to play")
     end
 
-    move = best_move(board, Q)
+    move, util = best_move(board, Q)
 
     # check if switching is possible
     if length(board.moves) == 1 && board.switched == false
         # switch if we have expected negative utility
-        if Q(board, move) < 0
+        # FIXME: this is a horrible switching rule when it comes to learning it!
+        if util < 0
             return Board(board.size, board.moves, true)
         end
     end

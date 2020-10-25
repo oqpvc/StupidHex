@@ -45,6 +45,7 @@ function has_path(fields, starts, targets)
         return false
     end
 
+    # superfluous nodes are nodes in starts which we have already reached
     superfluous = []
     for s in starts
         if !(s in superfluous) && in(s, fields)
