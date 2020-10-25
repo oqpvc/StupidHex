@@ -2,7 +2,7 @@ using Random
 
 function human_vs_human()
     h = Player(human_play)
-    p = game_loop(h, h, ask_board_size())
+    g, p = game_loop(h, h, ask_board_size())
     print("\n\nGAME OVER\nPayoff: ")
     println(p)
 end
@@ -10,8 +10,16 @@ end
 function human_vs_random()
     h = Player(human_play)
     c = Player(b -> next_board(b, random))
-    p = game_loop(h, c, ask_board_size())
+    g, p = game_loop(h, c, ask_board_size())
     print("\n\nGAME OVER\nPayoff: ")
+    println(p)
+end
+
+function random_vs_random(size = ask_board_size())
+    p1 = Player(b -> next_board(b, random))
+    p2 = Player(b -> next_board(b, random))
+    g, p = game_loop(p1, p2, size, false)
+    println(g)
     println(p)
 end
 
@@ -20,7 +28,7 @@ function ask_board_size()
     return parse(Int, readline())
 end
 
-function game_loop(player_a, player_b, board_size, random_first_player=true)
+function game_loop(player_a, player_b, board_size, random_first_player=true, output=false)
     b = Board(board_size)
     players = [player_a, player_b]
     if random_first_player
@@ -29,6 +37,9 @@ function game_loop(player_a, player_b, board_size, random_first_player=true)
 
     while payoff(b)==0
         b = players[current_player_number(b)].play(b)
+        if output
+            println(b)
+        end
     end
-    return payoff(b)
+    return b, payoff(b)
 end
