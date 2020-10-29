@@ -15,12 +15,20 @@ function human_vs_random()
     println(p)
 end
 
-function random_vs_random(size = ask_board_size())
+function random_vs_random(size = ask_board_size(), output=true)
     p1 = Player(b -> next_board(b, random))
     p2 = Player(b -> next_board(b, random))
     g, p = game_loop(p1, p2, size, false)
-    println(g)
-    println(p)
+    if output
+        println(g)
+        println(p)
+    end
+end
+
+function benchmark(iterations = 50, board_size = 13)
+    for i in 1:iterations
+        random_vs_random(board_size, false)
+    end
 end
 
 function ask_board_size()

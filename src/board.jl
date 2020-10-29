@@ -1,3 +1,5 @@
+using Crayons
+
 """
     Board
 
@@ -20,6 +22,26 @@ struct Board
     end
 end
 
+function distance(a, b)
+    # to have an easier time, we switch them so p is higher on the board than q
+    if a[1] < b[1]
+        p = a
+        q = b
+    else
+        p = b
+        q = a
+    end
+    r_diff = q[1]-p[1] # this is now \geq 0
+    c_diff = q[2]-p[2]
+
+    # we have an advantage over the manhattan distance if the differences have opposite signs
+    if r_diff*c_diff < 0
+        diag = min(abs(r_diff), abs(c_diff))
+        return diag + distance((p[1]+diag, p[2]-diag), q)
+    else
+        return abs(r_diff) + abs(c_diff)
+    end
+end
 
 function theoretical_neighbours(p)
     i, j = p[1], p[2]
@@ -42,6 +64,12 @@ end
 
 function has_path(fields, starts, targets)
     if findfirst(in(fields), starts) === nothing
+        return false
+    end
+
+    # checking whether a path is theoretically possible gives a very minor performance boost
+    distances = [distance(s, t) for s in starts for t in targets]
+    if min(distances...) > length(fields)
         return false
     end
 
@@ -95,7 +123,7 @@ function Base.show(io::IO, board::Board)
     # print the first line
     for i in 1:board.size
         print(io, " ")
-        print(io, Char(96+i))
+        print(io, crayon"light_blue", Char(96+i), crayon"reset")
         print(io, " ")
     end
     print(io, "\n")
@@ -108,14 +136,16 @@ function Base.show(io::IO, board::Board)
             print(io, " ")
         end
 
-        print(io, i)
+        print(io, crayon"light_red", i, crayon"reset")
         print(io, "\\")
 
         for j in 1:board.size
             idx = findfirst(isequal((i,j)), board.moves)
 
             if idx !== nothing
+                print(io, [crayon"light_red", crayon"light_blue"][idx%2 + 1])
                 print(io, ["x", "o"][idx%2 + 1])
+                print(io, crayon"reset")
             else
                 print(io, ".")
             end
@@ -126,7 +156,7 @@ function Base.show(io::IO, board::Board)
         end
 
         print(io, "\\")
-        print(io, i)
+        print(io, crayon"light_red", i, crayon"reset")
         print(io, "\n")
     end
 
@@ -137,12 +167,20 @@ function Base.show(io::IO, board::Board)
     end
     for i in 1:board.size
         print(io, " ")
-        print(io, Char(96+i))
+        print(io, crayon"light_blue", Char(96+i), crayon"reset")
         print(io, " ")
     end
     print(io, "\n")
 
-    players = board.switched ? ["x horizontally", "o vertically"] : ["o vertically", "x horizontally"]
-    println(io, "Player 1: " * players[1])
-    println(io, "Player 2: " * players[2])
+    explanations = [[crayon"light_red", "x", crayon"reset"," horizontally"],
+                    [crayon"light_blue", "o", crayon"reset", " vertically"]]
+
+    idx = i -> if board.switched
+        3-i
+    else
+        i
+    end
+
+    println(io, "Player 1: ", explanations[idx(1)]...)
+    println(io, "Player 2: ", explanations[idx(2)]...)
 end

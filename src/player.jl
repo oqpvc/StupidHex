@@ -2,17 +2,20 @@ struct Player
     play::Function
 end
 
+function legal_positions(board::Board)
+    all_positions = [(i,j) for i in 1:board.size for j in 1:board.size] 
+    return filter(!in(board.moves), all_positions)
+end
+
 function best_move(board::Board, Q)
     if payoff(board) != 0
         error("Game is already finished, no further moves to play")
     end
 
-    all_positions = [(i,j) for i in 1:board.size for j in 1:board.size] 
-
-    legal_positions = filter(!in(board.moves), all_positions)
-    utilities = map(p -> Q(board, p), legal_positions)
+    lp = legal_positions(board)
+    utilities = map(p -> Q(board, p), lp)
     u, i = findmax(utilities)
-    return legal_positions[i], u
+    return lp[i], u
 end
 
 
@@ -66,10 +69,10 @@ function human_play(board::Board)
         end
     end
 
-    print("Which row to play? [1.." * string(board.size) * "] ")
-    row = parse(Int, readline())
     print("Which column to play? [a.." * Char(96+board.size) * "] ")
     column = Int(readline()[1])-96
+    print("Which row to play? [1.." * string(board.size) * "] ")
+    row = parse(Int, readline())
 
     return Board(board.size, vcat(board.moves, [(row, column)]), board.switched)
 end
